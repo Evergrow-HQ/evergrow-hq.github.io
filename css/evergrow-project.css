@@ -513,13 +513,13 @@ li {
   -ms-flex-item-align: stretch;
   -ms-grid-row-align: stretch;
   align-self: stretch;
-  max-height: 350px;
 }
 
 .founder__img {
   height: 100%;
   -o-object-fit: cover;
   object-fit: cover;
+  max-height: 350px;
 }
 
 .founder__name {
