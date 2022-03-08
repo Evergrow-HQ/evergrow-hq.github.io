@@ -481,7 +481,7 @@ li {
   justify-content: center;
   grid-auto-columns: 1fr;
   grid-column-gap: 64px;
-  grid-row-gap: 16px;
+  grid-row-gap: 30px;
   -ms-grid-columns: minmax(200px, 250px) minmax(200px, 250px) minmax(200px, 250px);
   grid-template-columns: minmax(200px, 250px) minmax(200px, 250px) minmax(200px, 250px);
   -ms-grid-rows: auto;
@@ -507,8 +507,8 @@ li {
 
 .founder__img-wr {
   overflow: hidden;
-  height: 392px;
-  margin-bottom: 22px;
+  height: 360px;
+  margin-bottom: 12px;
   -webkit-align-self: stretch;
   -ms-flex-item-align: stretch;
   -ms-grid-row-align: stretch;
