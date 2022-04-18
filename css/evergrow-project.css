@@ -482,8 +482,8 @@ li {
   grid-auto-columns: 1fr;
   grid-column-gap: 64px;
   grid-row-gap: 30px;
-  -ms-grid-columns: minmax(225px, 200px) minmax(225px, 200px) minmax(225px, 200px) minmax(225px, 200px);
-  grid-template-columns: minmax(225px, 200px) minmax(225px, 200px) minmax(225px, 200px) minmax(225px, 200px);
+  -ms-grid-columns: minmax(225px, 200px) minmax(225px, 200px) minmax(225px, 200px);
+  grid-template-columns: minmax(225px, 200px) minmax(225px, 200px) minmax(225px, 200px);
   -ms-grid-rows: auto;
   grid-template-rows: auto;
 }
