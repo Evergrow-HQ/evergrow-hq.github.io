@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+
+
+<script src="js/lodash.min.js"></script>
+<script src="js/d3.v5.min.js"></script>
+<script src="js/vue.min.js"></script>
+
+<div id="some-element-you-want-to-animate" style="background-color:blue; width:100px; height:100px"></div>
+
+
+<canvas id="chart" width="450" height="250" style="border: 1px solid red"></canvas>
+
+<canvas id="canvas" width="150" height="150"></canvas>
+<script>
+
+function random_data(num_sims, pts_per_sim){
+  return _.range(num_sims).map(function(){
+    return {
+      "pts": _.range(pts_per_sim).map(_ => Math.random()),
+      "european": Math.random(),
+      "asian": Math.random()
+    }; 
+  });
+}
+random_data(100, 200);
+
+let start;
+function animationFn(timestamp){
+  if (start === undefined) {
+    start = timestamp;
+  }
+
+  const num_sims = 100;
+  const pts_per_sim = 200;
+
+  const padding = {top: 0, left: 0, right: 0, bottom: 0};
+  const width = 450 - padding.left - padding.right;
+  const height = 250 - padding.top - padding.bottom;
+
+  const yScale = d3.scaleLinear()
+          .domain([0, 1]).range([0, height]);
+  const xScale = d3.scaleLinear()
+          .domain([0, 1]).range([0, width]);
+
+  // Animate
+  const allowed_ms = 5000;
+  const elapsed_ms = timestamp - start;
+
+  const ms_per_pt = 50;
+  const ms_per_sim = ms_per_pt * pts_per_sim;
+
+  // const count = Math.min(0.1 * elapsed_ms, 200);
+  // element.style.transform = 'translateX(' + count + 'px)';
+
+  const sim_imd = Math.floor(elapsed_ms / ms_per_sim);
+  const ms_into_sim = elapsed_ms - sim_imd * ms_per_sim;
+  const pt_ind = ms_into_sim / ms_per_pt; 
+
+  // Hm... we should record the last pt we animated
+  // And animate???
+  // this isn't quite right
+
+
+  if (elapsed_ms < allowed_ms) {  
+    window.requestAnimationFrame(animationFn);
+  }
+}
+window.requestAnimationFrame(animationFn);
+
+
+function static_chart(){
+  const num_sims = 100;
+  const pts_per_sim = 200;
+
+  const padding = {top: 0, left: 0, right: 0, bottom: 0};
+  const width = 450 - padding.left - padding.right;
+  const height = 250 - padding.top - padding.bottom;
+
+  const xScale = d3.scaleLinear()
+          .domain([0, pts_per_sim]).range([0, width]);
+  const yScale = d3.scaleLinear()
+          .domain([0, 1]).range([0, height]);
+
+  const data = random_data(num_sims, pts_per_sim);
+
+  const ctx = document.getElementById('chart').getContext('2d');   
+  const pts = data[0].pts;
+
+
+  ctx.strokeStyle = '#1F6A66';
+  // ctx.fillStyle = 'white';
+  ctx.lineWidth = .2;
+
+  ctx.beginPath();
+  for (let i=0; i<pts.length-1; i++){
+    let x = xScale(i);
+    let y = yScale(pts[i]);
+    ctx.moveTo(x, y);
+
+    x = xScale(i+1);
+    y = yScale(pts[i+1]);
+    ctx.lineTo(x, y);
+    ctx.stroke();
+  }
+
+}
+static_chart();
+
+// const element = document.getElementById('some-element-you-want-to-animate');
+// let start, previousTimeStamp;
+// let done = false
+
+// function step(timestamp) {
+//   if (start === undefined) {
+//     start = timestamp;
+//     }
+//   const elapsed = timestamp - start;
+
+//   if (previousTimeStamp !== timestamp) {
+//     // Math.min() is used here to make sure the element stops at exactly 200px
+//     const count = Math.min(0.1 * elapsed, 200);
+//     element.style.transform = 'translateX(' + count + 'px)';
+//     if (count === 200) done = true;
+//   }
+
+//   if (elapsed < 2000) { // Stop the animation after 2 seconds
+//     previousTimeStamp = timestamp
+//     !done && window.requestAnimationFrame(step);
+//   }
+// }
+
+// window.requestAnimationFrame(step);
+
+// function chart(){
+//   padding = {top: 0, left: 0, right: 0, bottom: 0};
+//   width = 450 - padding.left - padding.right;
+//   height = 250 - padding.top - padding.bottom;
+//   const ctx = document.getElementById('chart').getContext('2d');
+
+//   ctx.translate(75, 75);
+//   ctx.scale(0.4, 0.4);
+//   ctx.rotate(-Math.PI / 2);
+
+//   ctx.strokeStyle = 'black';
+//   ctx.fillStyle = 'white';
+//   ctx.lineWidth = 8;
+//   ctx.lineCap = 'round';
+
+//   const now = new Date();
+//   const sec = now.getSeconds();
+//   const min = now.getMinutes();
+//   const hr  = now.getHours() % 12;
+
+//   // Write seconds
+//   ctx.save();
+//   ctx.rotate(sec * Math.PI / 30);
+//   ctx.strokeStyle = '#D40000';
+//   ctx.fillStyle = '#D40000';
+//   ctx.lineWidth = 6;
+//   ctx.beginPath();
+//   ctx.moveTo(-30, 0);
+//   ctx.lineTo(83, 0);
+//   ctx.stroke();
+//   ctx.beginPath();
+//   ctx.arc(0, 0, 10, 0, Math.PI * 2, true);
+//   ctx.fill();
+//   ctx.beginPath();
+//   ctx.arc(95, 0, 10, 0, Math.PI * 2, true);
+//   ctx.stroke();
+//   ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+//   ctx.arc(0, 0, 3, 0, Math.PI * 2, true);
+//   ctx.fill();
+//   ctx.restore();
+
+//   window.requestAnimationFrame(chart);
+// }
+// window.requestAnimationFrame(chart);
+
+
+// function clock() {
+//   const now = new Date();
+//   const ctx = document.getElementById('canvas').getContext('2d');
+//   ctx.save();
+//   ctx.clearRect(0, 0, 150, 150);
+//   ctx.translate(75, 75);
+//   ctx.scale(0.4, 0.4);
+//   ctx.rotate(-Math.PI / 2);
+//   ctx.strokeStyle = 'black';
+//   ctx.fillStyle = 'white';
+//   ctx.lineWidth = 8;
+//   ctx.lineCap = 'round';
+
+//   // Hour marks
+//   ctx.save();
+//   for (let i = 0; i < 12; i++) {
+//     ctx.beginPath();
+//     ctx.rotate(Math.PI / 6);
+//     ctx.moveTo(100, 0);
+//     ctx.lineTo(120, 0);
+//     ctx.stroke();
+//   }
+//   ctx.restore();
+
+//   // Minute marks
+//   ctx.save();
+//   ctx.lineWidth = 5;
+//   for (i = 0; i < 60; i++) {
+//     if (i % 5!= 0) {
+//       ctx.beginPath();
+//       ctx.moveTo(117, 0);
+//       ctx.lineTo(120, 0);
+//       ctx.stroke();
+//     }
+//     ctx.rotate(Math.PI / 30);
+//   }
+//   ctx.restore();
+
+//   const sec = now.getSeconds();
+//   const min = now.getMinutes();
+//   const hr  = now.getHours() % 12;
+
+//   ctx.fillStyle = 'black';
+
+//   // write Hours
+//   ctx.save();
+//   ctx.rotate(hr * (Math.PI / 6) + (Math.PI / 360) * min + (Math.PI / 21600) *sec);
+//   ctx.lineWidth = 14;
+//   ctx.beginPath();
+//   ctx.moveTo(-20, 0);
+//   ctx.lineTo(80, 0);
+//   ctx.stroke();
+//   ctx.restore();
+
+//   // write Minutes
+//   ctx.save();
+//   ctx.rotate((Math.PI / 30) * min + (Math.PI / 1800) * sec);
+//   ctx.lineWidth = 10;
+//   ctx.beginPath();
+//   ctx.moveTo(-28, 0);
+//   ctx.lineTo(112, 0);
+//   ctx.stroke();
+//   ctx.restore();
+
+//   // Write seconds
+//   ctx.save();
+//   ctx.rotate(sec * Math.PI / 30);
+//   ctx.strokeStyle = '#D40000';
+//   ctx.fillStyle = '#D40000';
+//   ctx.lineWidth = 6;
+//   ctx.beginPath();
+//   ctx.moveTo(-30, 0);
+//   ctx.lineTo(83, 0);
+//   ctx.stroke();
+//   ctx.beginPath();
+//   ctx.arc(0, 0, 10, 0, Math.PI * 2, true);
+//   ctx.fill();
+//   ctx.beginPath();
+//   ctx.arc(95, 0, 10, 0, Math.PI * 2, true);
+//   ctx.stroke();
+//   ctx.fillStyle = 'rgba(0, 0, 0, 0)';
+//   ctx.arc(0, 0, 3, 0, Math.PI * 2, true);
+//   ctx.fill();
+//   ctx.restore();
+
+//   ctx.beginPath();
+//   ctx.lineWidth = 14;
+//   ctx.strokeStyle = '#325FA2';
+//   ctx.arc(0, 0, 142, 0, Math.PI * 2, true);
+//   ctx.stroke();
+
+//   ctx.restore();
+
+//   window.requestAnimationFrame(clock);
+// }
+
+// window.requestAnimationFrame(clock);
+
+</script>
