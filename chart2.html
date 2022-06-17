@@ -6,8 +6,8 @@
 <script src="js/d3.v5.min.js"></script>
 <script src="js/vue.min.js"></script>
 
-<div id="some-element-you-want-to-animate" style="background-color:blue; width:100px; height:100px"></div>
 
+<canvas id="histogram" width="450" height="250" style="border: 1px solid red"></canvas>
 
 <canvas id="chart" width="450" height="250" style="border: 1px solid red"></canvas>
 
@@ -25,51 +25,20 @@ function random_data(num_sims, pts_per_sim){
 }
 random_data(100, 200);
 
-let start;
-function animationFn(timestamp){
-  if (start === undefined) {
-    start = timestamp;
-  }
+function getPosition(elapsed_ms, num_sims, pts_per_sim){
 
-  const num_sims = 100;
-  const pts_per_sim = 200;
-
-  const padding = {top: 0, left: 0, right: 0, bottom: 0};
-  const width = 450 - padding.left - padding.right;
-  const height = 250 - padding.top - padding.bottom;
-
-  const yScale = d3.scaleLinear()
-          .domain([0, 1]).range([0, height]);
-  const xScale = d3.scaleLinear()
-          .domain([0, 1]).range([0, width]);
-
-  // Animate
-  const allowed_ms = 5000;
-  const elapsed_ms = timestamp - start;
-
-  const ms_per_pt = 50;
+  /* Return the max position we can animate upto */
+  const ms_per_pt = 1;
   const ms_per_sim = ms_per_pt * pts_per_sim;
 
-  // const count = Math.min(0.1 * elapsed_ms, 200);
-  // element.style.transform = 'translateX(' + count + 'px)';
+  const sim_ind = Math.floor(elapsed_ms / ms_per_sim);
+  const ms_into_sim = elapsed_ms - sim_ind * ms_per_sim;
+  const pt_ind = Math.floor(ms_into_sim / ms_per_pt); 
 
-  const sim_imd = Math.floor(elapsed_ms / ms_per_sim);
-  const ms_into_sim = elapsed_ms - sim_imd * ms_per_sim;
-  const pt_ind = ms_into_sim / ms_per_pt; 
-
-  // Hm... we should record the last pt we animated
-  // And animate???
-  // this isn't quite right
-
-
-  if (elapsed_ms < allowed_ms) {  
-    window.requestAnimationFrame(animationFn);
-  }
+  return {sim_ind: sim_ind, pt_ind: pt_ind};
 }
-window.requestAnimationFrame(animationFn);
 
-
-function static_chart(){
+function start_animation(){
   const num_sims = 100;
   const pts_per_sim = 200;
 
@@ -82,30 +51,144 @@ function static_chart(){
   const yScale = d3.scaleLinear()
           .domain([0, 1]).range([0, height]);
 
+
   const data = random_data(num_sims, pts_per_sim);
 
   const ctx = document.getElementById('chart').getContext('2d');   
-  const pts = data[0].pts;
+  ctx.strokeStyle = 'rgba(31,106,102,.2)';
+  ctx.lineWidth = .2;
+
+  let timestamp_start;
+  let last = {sim_ind:0, pt_ind:0};
+  function animationFn(timestamp){
+    if (timestamp_start === undefined) {
+      timestamp_start = timestamp;
+    }
+    const elapsed_ms = timestamp - timestamp_start;
+
+    const position = getPosition(elapsed_ms, num_sims, pts_per_sim);
+
+    ctx.beginPath();
+    for (let sim_ind=last.sim_ind; sim_ind<= Math.min(position.sim_ind, data.length-1); sim_ind++){
+      let pts = data[sim_ind].pts;
+
+      // off by one todo:
+      for (let pt_ind=last.pt_ind; pt_ind<=Math.min(position.pt_ind, pts.length-2); pt_ind++){
+        let x = xScale(pt_ind);
+        let y = yScale(pts[pt_ind]);
+        ctx.moveTo(x, y);
+
+        a = xScale(pt_ind+1);
+        b = yScale(pts[pt_ind+1]);
+        ctx.lineTo(a, b);
+        // console.log(x, y, a, b);
+      }    
+      ctx.stroke();
+    }
+
+    const allowed_ms = 5000; // todo: remove
+    if (elapsed_ms < allowed_ms) { 
+      last = position; 
+      window.requestAnimationFrame(animationFn);
+    }
+  }
+  window.requestAnimationFrame(animationFn);
+}
+start_animation();
 
 
-  ctx.strokeStyle = '#1F6A66';
-  // ctx.fillStyle = 'white';
+function static_histogram(){
+  const num_sims = 100;
+  const pts_per_sim = 50;
+
+  const padding = {top: 0, left: 0, right: 0, bottom: 0};
+  const width = 450 - padding.left - padding.right;
+  const height = 250 - padding.top - padding.bottom;
+
+
+  // todo: gotta use the same data so we 
+  const data = random_data(num_sims, pts_per_sim);
+
+  // make the histogram bins using d3
+
+  const values = [];
+  data.forEach(function(datum){
+    values.push(datum.european);
+    values.push(datum.asian);
+  });
+  const hist = d3.histogram()(values);
+
+      // .value(function(d) { return d.price; })   // I need to give the vector of value
+      // .domain(x.domain())  // then the domain of the graphic
+      // .thresholds(x.ticks(70)); // then the numbers of bins
+
+  const num_bins = hist.length;
+  const max_in_a_bin = _.max(hist.map(x => x.length));
+
+  const xScale = d3.scaleLinear()
+          .domain([0, num_bins]).range([0, width]);
+  const yScale = d3.scaleLinear()
+          .domain([0, max_in_a_bin]).range([height, 0]);
+
+
+  const ctx = document.getElementById('histogram').getContext('2d');   
+  ctx.strokeStyle = 'rgba(31,106,102,.4)';
   ctx.lineWidth = .2;
 
   ctx.beginPath();
-  for (let i=0; i<pts.length-1; i++){
-    let x = xScale(i);
-    let y = yScale(pts[i]);
-    ctx.moveTo(x, y);
-
-    x = xScale(i+1);
-    y = yScale(pts[i+1]);
-    ctx.lineTo(x, y);
+  for (let bin_id=0; bin_id<num_bins; bin_id++){
+    let bin = hist[bin_id];
+    for (let i=0; i<bin.length; i++){
+      let x1 = xScale(bin_id);
+      let x2 = xScale(bin_id+1);
+      let y = yScale(i);
+      ctx.moveTo(x1, y);
+      ctx.lineTo(x2, y);
+    }    
     ctx.stroke();
   }
-
 }
-static_chart();
+static_histogram();
+
+
+
+// function static_chart(){
+//   const num_sims = 10;
+//   const pts_per_sim = 50;
+
+//   const padding = {top: 0, left: 0, right: 0, bottom: 0};
+//   const width = 450 - padding.left - padding.right;
+//   const height = 250 - padding.top - padding.bottom;
+
+//   const xScale = d3.scaleLinear()
+//           .domain([0, pts_per_sim]).range([0, width]);
+//   const yScale = d3.scaleLinear()
+//           .domain([0, 1]).range([0, height]);
+
+//   const data = random_data(num_sims, pts_per_sim);
+
+//   const ctx = document.getElementById('chart').getContext('2d');   
+//   ctx.strokeStyle = 'rgba(31,106,102,.2)';
+//   ctx.lineWidth = .2;
+
+//   ctx.beginPath();
+//   for (let j=0; j<data.length; j++){
+//     let pts = data[j].pts;
+//     for (let i=0; i<pts.length-1; i++){
+//       let x = xScale(i);
+//       let y = yScale(pts[i]);
+//       ctx.moveTo(x, y);
+
+//       x = xScale(i+1);
+//       y = yScale(pts[i+1]);
+//       ctx.lineTo(x, y);
+//     }    
+//     ctx.stroke();
+//   }
+
+
+// }
+// static_chart();
 
 // const element = document.getElementById('some-element-you-want-to-animate');
 // let start, previousTimeStamp;
