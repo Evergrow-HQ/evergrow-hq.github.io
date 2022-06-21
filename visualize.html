@@ -38,11 +38,22 @@ input{
 select{
   color: black;
 }
+
+canvas{
+  position: absolute;
+  left: 0;
+  top:  0;
+}
+
 </style>
 
+<script src="website.js"></script>
 <script src="js/lodash.min.js"></script>
 <script src="js/d3.v5.min.js"></script>
 <script src="js/vue.min.js"></script>
+
+
+
 
 <body>
 
@@ -67,23 +78,23 @@ select{
       </div>
     </div>
   </div>
-  <div class="hero wf-section"><img src="images/hero-bg-min.png" srcset="images/hero-bg-min-p-500.png 500w, images/hero-bg-min-p-800.png 800w, images/hero-bg-min-p-1080.png 1080w, images/hero-bg-min-p-1600.png 1600w, images/hero-bg-min-p-2000.png 2000w, images/hero-bg-min-p-2600.png 2600w, images/hero-bg-min.png 2880w" style="-webkit-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-moz-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-ms-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);opacity:1; background-color: black" sizes="100vw" alt="" class="hero__bg-img" >
+  <div class="hero wf-section" style="padding-top:120px"><img src="images/hero-bg-min.png" srcset="images/hero-bg-min-p-500.png 500w, images/hero-bg-min-p-800.png 800w, images/hero-bg-min-p-1080.png 1080w, images/hero-bg-min-p-1600.png 1600w, images/hero-bfg-min-p-2000.png 2000w, images/hero-bg-min-p-2600.png 2600w, images/hero-bg-min.png 2880w" style="-webkit-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-moz-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-ms-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);opacity:1; background-color: black" sizes="100vw" alt="" class="hero__bg-img" >
     <div class="hero__helper">
-      <div class="container w-container" style="display: grid; grid-template-columns: 1fr 1fr;" >
+
+<div class="container" style="display: grid; grid-template-columns: 1fr 1fr; grid-column-gap: 5%; color:white; background-color: #257D78; padding: 5% 48px; font-size: 16px" >
 
 
-  <div id="app">
-<!--     <distribution :outcomes="[{x: 13, y: 0.1}, {x: 88, y: 0.5}, {x: 108, y: 0.2},]" xLabel="Number of biases hero needs to overcome" yLabel="Probability" />
- -->  </div>
-
-
-
-<div class="hero__content-wr" style="color:white; background-color: #257D78; padding: 48px; font-size: 16px; width: 100%">
-
-<div class="lhs" style="max-width: 500px;"> 
+<div>
 <h1 style="opacity:0;-webkit-transform:translate3d(0, -20px, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-moz-transform:translate3d(0, -20px, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-ms-transform:translate3d(0, -20px, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);transform:translate3d(0, -20px, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0)" class="hero__ttl">Evergrow is derisking decarbonization.</h1>
-<div style="width:0px; margin-bottom: 24px" class="hero__div"></div>
 
+<div style="width:0px; margin-bottom: 24px" class="hero__div"></div>
+</div>
+
+
+<div></div> <!-- spacer -->
+
+
+<div>
 <p>
 Carbon developers often have highly variable revenue streams because they are paid in carbon credits. 
 </p>
@@ -128,7 +139,43 @@ Play with this calculator to see how Asian options are cheaper to underwrite tha
 
 <div></div>
 <button style="background-color: #1F6A66; grid-column: span 2;">Generate</button>
-</div> <!-- end grid -->
+</div> <!-- end form grid -->
+
+</div> 
+
+
+
+<div>
+  
+
+  <!-- todo: make this mobile friendly 
+
+  todo: add in a call to action
+  -->
+
+
+  <div>
+    <!-- border-bottom: 1px solid #1f6a66; border-left: 1px solid #1f6a66 -->
+    <p>Using Monte Carlo to simulate future price paths...</p>
+    <div style="position:relative; height: 250px">
+    <canvas id="chart" width="450" height="250"></canvas>
+    <canvas id="active-line" width="450" height="250"></canvas>
+    </div>
+  </div>
+
+  <div>
+    <p>We can see in the loss histograms, that it is significantly cheaper to write an Asian put than a European put.</p>
+    <p>Average payout for Asian put: <span id="asian_avg"></span> European put: <span id="european_avg"></span> </p>
+    <div style="position:relative; height: 250px">
+      <canvas id="ehistogram" width="450" height="250"></canvas>
+      <canvas id="ahistogram" width="450" height="250"></canvas>
+      <div style="position:absolute; bottom: -30px; text-align: center; width:100%">Losses ($)</div>
+    </div>
+  </div>
+
+</div> 
+</div> <!-- end big grid -->
+
 
 <!--
 Changing the credit type should change strike price
@@ -150,15 +197,6 @@ Changing the credit type should change strike price
 
 <button style="background-color: #1F6A66; grid-column: span 2; margin: 8px 0">Submit</button>
 </div> -->
-
-
-<div>
-  
-
-</div>
-
-</div> <!-- end lhs-->
-</div> <!-- end hero -->
 
 
   <script src="https://d3e54v103j8qbb.cloudfront.net/js/jquery-3.5.1.min.dc5e7f18c8.js?site=6172ab4eb07d4118462f5ba1" type="text/javascript" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
@@ -213,6 +251,217 @@ Webflow.push(function() {
 </div>
 </script>
 
+
+<script>
+function makeRandomData(num_sims, pts_per_sim){
+  return _.range(num_sims).map(function(){
+    return {
+      "pts": _.range(pts_per_sim).map(_ => Math.random()),
+      "european": Math.random(),
+      "asian": Math.random()
+    }; 
+  });
+}
+makeRandomData(100, 200);
+
+function getData(){
+    return website_data['data']['lcfs']; 
+}
+
+function getPosition(elapsed_ms, num_sims, pts_per_sim){
+
+  /* Return the max position we can animate upto */
+  const ms_per_pt = .1;
+  const ms_per_sim = ms_per_pt * pts_per_sim;
+
+  const sim_ind = Math.floor(elapsed_ms / ms_per_sim);
+  const ms_into_sim = elapsed_ms - sim_ind * ms_per_sim;
+  const pt_ind = Math.floor(ms_into_sim / ms_per_pt); 
+
+  return {sim_ind: sim_ind, pt_ind: pt_ind};
+}
+
+const GREEN = '#1f6a66';
+const GOLD = '#A08833';
+const DARK = '#003936';
+
+function setupLineChart(pts_per_sim, max_value){
+  const padding = {top: 0, left: 0, right: 0, bottom: 0};
+  const width = 450 - padding.left - padding.right;
+  const height = 250 - padding.top - padding.bottom;
+
+  const xScale = d3.scaleLinear()
+          .domain([0, pts_per_sim]).range([0, width]);
+  const yScale = d3.scaleLinear()
+          .domain([0, max_value]).range([0, height]);  
+
+  const ctx = document.getElementById('chart').getContext('2d')   
+  ctx.strokeStyle = GREEN; 
+  ctx.lineWidth = .5;
+
+  const lctx = document.getElementById('active-line').getContext('2d')   
+  lctx.strokeStyle = '#fff'; //DARK;
+  lctx.lineWidth = 2;
+
+  return {ctx: ctx, lctx: lctx, xScale: xScale, yScale: yScale};
+}
+
+function setupHistogram(data){
+  // debugger;
+  // const european_payouts = data.map(datum => datum.european);
+
+  const padding = {top: 0, left: 0, right: 0, bottom: 0};
+  const width = 450 - padding.left - padding.right;
+  const height = 250 - padding.top - padding.bottom;
+
+
+  const values = [];
+  data.forEach(function(datum){
+    values.push(datum.european);
+    values.push(datum.asian);
+  });
+  const hist = d3.histogram()(values); // .thresholds(20)
+
+  const num_bins = hist.length;
+  const fudge = 0.6;
+  const max_in_a_bin = _.max(hist.map(x => x.length)) * fudge;
+
+  const xScale = d3.scaleLinear()
+          .domain([0, num_bins]).range([0, width]);
+  const yScale = d3.scaleLinear()
+          .domain([0, max_in_a_bin]).range([height, 0]);
+
+
+  const ectx = document.getElementById('ehistogram').getContext('2d');   
+  ectx.strokeStyle = 'red'; //GREEN; 
+  ectx.lineWidth = 2;
+
+  const actx = document.getElementById('ahistogram').getContext('2d');   
+  actx.strokeStyle = GOLD;
+  actx.lineWidth = 2;
+
+  return {ectx: ectx, actx: actx, xScale: xScale, yScale: yScale, hist:hist};  
+}
+
+function find_bin(hist, x){
+  for (let i=0; i<hist.hist.length; i++){
+    if (x >= hist.hist[i].x0 && x <= hist.hist[i].x1){
+      return i;
+    }
+  }
+  console.error('oh noe - histogram made wrong');
+}
+
+function plot_line_on_hist(hist, val, ctx, progress, y_offset){
+  ctx.beginPath();
+  const bin_id = find_bin(hist, val);
+
+  const num_in_bin = progress[bin_id] == undefined ? 0 : progress[bin_id];
+  progress[bin_id] = num_in_bin + 1;
+
+  let x1 = hist.xScale(bin_id);
+  let x2 = hist.xScale(bin_id+1);
+
+  let y = hist.yScale(num_in_bin);
+  const pad = 1;
+  ctx.moveTo(x1+pad, y+y_offset);
+  ctx.lineTo(x2-pad, y+y_offset);
+
+  // console.log(x1, x2, y, num_in_bin);
+  // debugger;
+  ctx.stroke();
+}
+
+function startAnimation(){
+  // const num_sims = 100;
+  // const pts_per_sim = 200;
+  // const data = makeRandomData(num_sims, pts_per_sim);
+
+
+  const data = getData();
+  const num_sims = data.length;
+  const pts_per_sim = data[0].pts.length;
+  const max_value = _.max(data.map(datum => _.max(datum.pts)));
+
+  // debugger;
+
+  const line = setupLineChart(pts_per_sim, max_value);
+  const hist = setupHistogram(data);
+
+  let timestamp_start;
+  let last = {sim_ind:0, pt_ind:0};
+  const progress = {e: {}, a: {}};
+  function animationFn(timestamp){
+    if (timestamp_start === undefined) {
+      timestamp_start = timestamp;
+    }
+    const elapsed_ms = timestamp - timestamp_start;
+
+    const position = getPosition(elapsed_ms, num_sims, pts_per_sim);
+
+    line.ctx.beginPath();
+    line.lctx.beginPath();
+    line.lctx.clearRect(0, 0, 1500,1500);
+    for (let sim_ind=last.sim_ind; sim_ind<= Math.min(position.sim_ind, data.length-1); sim_ind++){
+      let pts = data[sim_ind].pts;
+      for (let pt_ind=last.pt_ind; pt_ind<=Math.min(position.pt_ind, pts.length-2); pt_ind++){
+        let x = line.xScale(pt_ind);
+        let y = line.yScale(pts[pt_ind]);
+        line.ctx.moveTo(x, y);
+        line.lctx.moveTo(x, y);
+
+        a = line.xScale(pt_ind+1);
+        b = line.yScale(pts[pt_ind+1]);
+        line.ctx.lineTo(a, b);
+        line.lctx.lineTo(a, b);
+        // console.log(x, y, a, b);
+      }    
+      line.ctx.stroke();
+      line.lctx.stroke();
+    }
+
+    for (let sim_ind=last.sim_ind; sim_ind < Math.min(position.sim_ind, data.length); sim_ind++){
+
+      const datum = data[sim_ind];
+      const e_value = datum.european;
+      const a_value = datum.asian;
+      // console.log(sim_ind);
+
+
+      // stopped here - trying to get what points have been seen so far so we can update the running average 
+      plot_line_on_hist(hist, e_value, hist.ectx, progress.e, 0);
+      plot_line_on_hist(hist, a_value, hist.actx, progress.a, 10);
+
+      const european_avg = Math.random();
+      const asian_avg = Math.random();
+      document.querySelector('#european_avg').textContent = european_avg;
+      document.querySelector('#asian_avg').textContent = asian_avg;
+    }
+
+    // for (let bin_id=0; bin_id<hist.length; bin_id++){
+    //   let bin = hist.hist[bin_id];
+    //   for (let i=0; i<bin.length; i++){
+    //     let x1 = hist.xScale(bin_id);
+    //     let x2 = hist.xScale(bin_id+1);
+    //     let y = hist.yScale(i);
+    //     hist.ctx.moveTo(x1, y);
+    //     hist.ctx.lineTo(x2, y);
+    //   }    
+    //   hist.ctx.stroke();
+    // }
+
+    const allowed_ms = 15000; // todo: remove
+    if (elapsed_ms < allowed_ms) { 
+      last = position; 
+      window.requestAnimationFrame(animationFn);
+    }
+  }
+  window.requestAnimationFrame(animationFn);
+}
+startAnimation();
+
+</script>
+
 <script>
   // const { createApp } = Vue
 
@@ -224,113 +473,113 @@ Webflow.push(function() {
   //   }
   // }).mount('#app')
 
-Vue.component('distribution', {
-  props: {
+// Vue.component('distribution', {
+//   props: {
 
-    title: {type: String},
-    xLabel: {type: String},
-    yLabel: {type: String},
+//     title: {type: String},
+//     xLabel: {type: String},
+//     yLabel: {type: String},
 
-    // Pass in outcomes directly.
-    outcomes: {type: Array, default: function(){
-      return [
-        {x: 'tattoos', y: 0.2},
-        {x: 'no tattoos', y: 0.8},
-      ];
-    }},
-    chartHeight: {type: Number, default: 200},
-    chartWidth: {type: Number, default: 300},
-    barColor: {type:String, default:'#2F77A1'},
-    margin: {
-      type: Object, 
-      default: function(){
-        return {top: 10, right: 10, bottom: 50, left: 50};
-      }
-    },
-  },
-  computed: {
-    xScale(){
-      return d3.scaleBand()
-          .domain(this.outcomes.map(d => d.x)).paddingInner(0.01).range([0, this.chartWidth]);
-    },
-    xScaleContinuous(){
-      const domain = this.xScale.domain();
-      const range = this.xScale.range();
-      const bandwidth = this.xScale.bandwidth();
-      return d3.scaleLinear().domain([domain[0], domain[domain.length-1]]).range([range[0] + bandwidth/2, range[1] - bandwidth/2]);
-    },
-    yScale(){
-      return d3.scaleLinear()
-          .domain([0, 1]).range([this.chartHeight, 0]);
-    },
-    titleStyle(){
-      return {'margin-left': this.margin.left + 'px', 'margin-right': this.margin.right + 'px'};
-    },
-    mean: function(){
-      return _.sum(this.outcomes.map(outcome => outcome.x * outcome.y));
-    },
-  },
-  data: function(){
-    return {
-      isCreated: false,
-    }
-  },
-  created: function(){
-    // Add domains
-    console.log('created');
-    this.isCreated = true;
-  },
-  mounted: function() {
-    // Add the axis
-    var xAxis = d3.axisBottom(this.xScale); //.ticks(8);
-    var yAxis = d3.axisLeft(this.yScale).ticks(4);
+//     // Pass in outcomes directly.
+//     outcomes: {type: Array, default: function(){
+//       return [
+//         {x: 'tattoos', y: 0.2},
+//         {x: 'no tattoos', y: 0.8},
+//       ];
+//     }},
+//     chartHeight: {type: Number, default: 200},
+//     chartWidth: {type: Number, default: 300},
+//     barColor: {type:String, default:'#2F77A1'},
+//     margin: {
+//       type: Object, 
+//       default: function(){
+//         return {top: 10, right: 10, bottom: 50, left: 50};
+//       }
+//     },
+//   },
+//   computed: {
+//     xScale(){
+//       return d3.scaleBand()
+//           .domain(this.outcomes.map(d => d.x)).paddingInner(0.01).range([0, this.chartWidth]);
+//     },
+//     xScaleContinuous(){
+//       const domain = this.xScale.domain();
+//       const range = this.xScale.range();
+//       const bandwidth = this.xScale.bandwidth();
+//       return d3.scaleLinear().domain([domain[0], domain[domain.length-1]]).range([range[0] + bandwidth/2, range[1] - bandwidth/2]);
+//     },
+//     yScale(){
+//       return d3.scaleLinear()
+//           .domain([0, 1]).range([this.chartHeight, 0]);
+//     },
+//     titleStyle(){
+//       return {'margin-left': this.margin.left + 'px', 'margin-right': this.margin.right + 'px'};
+//     },
+//     mean: function(){
+//       return _.sum(this.outcomes.map(outcome => outcome.x * outcome.y));
+//     },
+//   },
+//   data: function(){
+//     return {
+//       isCreated: false,
+//     }
+//   },
+//   created: function(){
+//     // Add domains
+//     console.log('created');
+//     this.isCreated = true;
+//   },
+//   mounted: function() {
+//     // Add the axis
+//     var xAxis = d3.axisBottom(this.xScale); //.ticks(8);
+//     var yAxis = d3.axisLeft(this.yScale).ticks(4);
 
-    const chart = d3.select(this.$el).select('.container');
-    chart.append('g').call(yAxis);
-    chart.append('g').attr('transform', 'translate(0,' + this.chartHeight + ')').call(xAxis);
+//     const chart = d3.select(this.$el).select('.container');
+//     chart.append('g').call(yAxis);
+//     chart.append('g').attr('transform', 'translate(0,' + this.chartHeight + ')').call(xAxis);
 
 
-    // x axis label
-    chart.append("text")             
-      .attr("transform",
-            "translate(" + (this.chartWidth/2) + " ," + 
-                           (this.chartHeight + this.margin.top + 30) + ")")
-      .style("text-anchor", "middle")
-      .text(this.xLabel);
+//     // x axis label
+//     chart.append("text")             
+//       .attr("transform",
+//             "translate(" + (this.chartWidth/2) + " ," + 
+//                            (this.chartHeight + this.margin.top + 30) + ")")
+//       .style("text-anchor", "middle")
+//       .text(this.xLabel);
 
-    // y axis label
-    chart.append("text")
-      .attr("transform", "rotate(-90)")
-      .attr("y", 0 - this.margin.left)
-      .attr("x",0 - (this.chartHeight / 2))
-      .attr("dy", "1em")
-      .style("text-anchor", "middle")
-      .text(this.yLabel);    
+//     // y axis label
+//     chart.append("text")
+//       .attr("transform", "rotate(-90)")
+//       .attr("y", 0 - this.margin.left)
+//       .attr("x",0 - (this.chartHeight / 2))
+//       .attr("dy", "1em")
+//       .style("text-anchor", "middle")
+//       .text(this.yLabel);    
 
-  },
-  template: '#distribution-template'
-});
+//   },
+//   template: '#distribution-template'
+// });
 
-new Vue({
-  el: '#app',
-  data: {
-  },
-  computed: {
-    currentChapter: function(){
-    },
-  },
-  created() {
-    console.log('heyyy')
-  },
-  methods: {
-    makeHistogram(){
+// new Vue({
+//   el: '#app',
+//   data: {
+//   },
+//   computed: {
+//     currentChapter: function(){
+//     },
+//   },
+//   created() {
+//     console.log('heyyy')
+//   },
+//   methods: {
+//     makeHistogram(){
 
-    },
-    submitRequest(){
+//     },
+//     submitRequest(){
 
-    }
-  } // end methods
-});
+//     }
+//   } // end methods
+// });
 </script>
 
 </body>
