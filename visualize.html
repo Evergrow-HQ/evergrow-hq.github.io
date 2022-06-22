@@ -39,7 +39,7 @@ select{
   color: black;
 }
 
-canvas{
+.absolute{
   position: absolute;
   left: 0;
   top:  0;
@@ -51,8 +51,6 @@ canvas{
 <script src="js/lodash.min.js"></script>
 <script src="js/d3.v5.min.js"></script>
 <script src="js/vue.min.js"></script>
-
-
 
 
 <body>
@@ -108,7 +106,7 @@ Traditional option structures can provide similar types of downside protection -
 We at Evergrow provide a variant of a put option that guarantees average revenue e.g. on an annual or quarterly basis, the frequency at which they pay out to their lenders. Through this averagining methodology, it is possible to have a much cheaper option. This is called an Asian option. 
 </p>
 <p>
-Play with this calculator to see how Asian options are cheaper to underwrite than traditional American options. </p>
+Play with this calculator to see how Asian options are cheaper to underwrite than traditional European options. </p>
 
 
 <div style="display: grid; grid-template-columns: minmax(180px,1fr) 1fr 1fr; grid-row-gap: 4px;">
@@ -138,7 +136,7 @@ Play with this calculator to see how Asian options are cheaper to underwrite tha
 <input value="2026"/>
 
 <div></div>
-<button style="background-color: #1F6A66; grid-column: span 2;">Generate</button>
+<button style="background-color: #1F6A66; grid-column: span 2;">Generate @click="formClick"</button>
 </div> <!-- end form grid -->
 
 </div> 
@@ -158,19 +156,24 @@ Play with this calculator to see how Asian options are cheaper to underwrite tha
     <!-- border-bottom: 1px solid #1f6a66; border-left: 1px solid #1f6a66 -->
     <p>Using Monte Carlo to simulate future price paths...</p>
     <div style="position:relative; height: 250px">
-    <canvas id="chart" width="450" height="250"></canvas>
-    <canvas id="active-line" width="450" height="250"></canvas>
+    <canvas id="chart" width="450" height="250" class="absolute"></canvas>
+    <canvas id="active-line" width="450" height="250" class="absolute"></canvas>
     </div>
   </div>
 
   <div>
     <p>We can see in the loss histograms, that it is significantly cheaper to write an Asian put than a European put.</p>
-    <p>Average payout for Asian put: <span id="asian_avg"></span> European put: <span id="european_avg"></span> </p>
-    <div style="position:relative; height: 250px">
-      <canvas id="ehistogram" width="450" height="250"></canvas>
-      <canvas id="ahistogram" width="450" height="250"></canvas>
-      <div style="position:absolute; bottom: -30px; text-align: center; width:100%">Losses ($)</div>
+
+    <div style="position:relative;">
+      <canvas id="ehistogram" width="450" height="200"></canvas>
+      <div style="position:absolute; bottom: -20px; text-align: center; width:100%">Average loss for European put: <span id="european_avg" style="color: red"></span></div>
     </div>
+
+    <div style="position:relative;">
+      <canvas id="ahistogram" width="450" height="200"></canvas>
+      <div style="position:absolute; bottom: -20px; text-align: center; width:100%">Average loss for Asian put: <span id="asian_avg" style="color: #A08833"></span> </p> </div>
+    </div>
+
   </div>
 
 </div> 
@@ -312,7 +315,7 @@ function setupHistogram(data){
 
   const padding = {top: 0, left: 0, right: 0, bottom: 0};
   const width = 450 - padding.left - padding.right;
-  const height = 250 - padding.top - padding.bottom;
+  const height = 200 - padding.top - padding.bottom;
 
 
   const values = [];
@@ -343,6 +346,8 @@ function setupHistogram(data){
   return {ectx: ectx, actx: actx, xScale: xScale, yScale: yScale, hist:hist};  
 }
 
+
+
 function find_bin(hist, x){
   for (let i=0; i<hist.hist.length; i++){
     if (x >= hist.hist[i].x0 && x <= hist.hist[i].x1){
@@ -352,45 +357,69 @@ function find_bin(hist, x){
   console.error('oh noe - histogram made wrong');
 }
 
-function plot_line_on_hist(hist, val, ctx, progress, y_offset){
-  ctx.beginPath();
-  const bin_id = find_bin(hist, val);
+function current_histogram(hist, seen, key){
+  return _.countBy(seen, datum => find_bin(hist, datum[key]));
+}
 
-  const num_in_bin = progress[bin_id] == undefined ? 0 : progress[bin_id];
-  progress[bin_id] = num_in_bin + 1;
+function find_bin_data(hist, datum, seen){
+  const e_bin_id = find_bin(hist, datum.european);
+  const a_bin_id = find_bin(hist, datum.asian);
 
+  // It's ineffiecient to keep calculating this each time
+  // may need to optimize this.
+  const e_current_histogram = current_histogram(hist, seen, 'european');
+  const a_current_histogram = current_histogram(hist, seen, 'asian');
+
+  const e_num_in_bin = e_current_histogram[e_bin_id] + 1;
+  const a_num_in_bin = a_current_histogram[a_bin_id] + 1;
+
+  return {e_bin_id: e_bin_id, 
+          e_num_in_bin: e_num_in_bin, 
+          a_bin_id: a_bin_id, 
+          a_num_in_bin: a_num_in_bin};
+}
+
+function update_histogram_with_datum(hist, datum, seen){
+
+  const bin_data = find_bin_data(hist, datum, seen); 
+
+  // Update running average.
+  const asian_avg = _.mean(seen.map(datum => datum.asian)) || 0;
+  const european_avg = _.mean(seen.map(datum => datum.european)) || 0;
+  document.querySelector('#european_avg').textContent = '$'+european_avg.toFixed(2);
+  document.querySelector('#asian_avg').textContent = '$'+asian_avg.toFixed(2);
+
+  // Draw new line on histogram.
+  draw_line(hist, hist.ectx, bin_data.e_bin_id, bin_data.e_num_in_bin, 0);
+  draw_line(hist, hist.actx, bin_data.a_bin_id, bin_data.a_num_in_bin, 0);
+}
+
+
+function draw_line(hist, ctx, bin_id, num_in_bin, y_offset){
   let x1 = hist.xScale(bin_id);
   let x2 = hist.xScale(bin_id+1);
 
   let y = hist.yScale(num_in_bin);
   const pad = 1;
-  ctx.moveTo(x1+pad, y+y_offset);
-  ctx.lineTo(x2-pad, y+y_offset);
-
-  // console.log(x1, x2, y, num_in_bin);
-  // debugger;
+  ctx.beginPath();
+  ctx.moveTo(x1+pad, y + y_offset);
+  ctx.lineTo(x2-pad, y + y_offset);
   ctx.stroke();
 }
 
+
 function startAnimation(){
-  // const num_sims = 100;
-  // const pts_per_sim = 200;
-  // const data = makeRandomData(num_sims, pts_per_sim);
-
-
   const data = getData();
   const num_sims = data.length;
   const pts_per_sim = data[0].pts.length;
   const max_value = _.max(data.map(datum => _.max(datum.pts)));
-
-  // debugger;
 
   const line = setupLineChart(pts_per_sim, max_value);
   const hist = setupHistogram(data);
 
   let timestamp_start;
   let last = {sim_ind:0, pt_ind:0};
-  const progress = {e: {}, a: {}};
+  let seen = [];
   function animationFn(timestamp){
     if (timestamp_start === undefined) {
       timestamp_start = timestamp;
@@ -423,32 +452,10 @@ function startAnimation(){
     for (let sim_ind=last.sim_ind; sim_ind < Math.min(position.sim_ind, data.length); sim_ind++){
 
       const datum = data[sim_ind];
-      const e_value = datum.european;
-      const a_value = datum.asian;
-      // console.log(sim_ind);
 
-
-      // stopped here - trying to get what points have been seen so far so we can update the running average 
-      plot_line_on_hist(hist, e_value, hist.ectx, progress.e, 0);
-      plot_line_on_hist(hist, a_value, hist.actx, progress.a, 10);
-
-      const european_avg = Math.random();
-      const asian_avg = Math.random();
-      document.querySelector('#european_avg').textContent = european_avg;
-      document.querySelector('#asian_avg').textContent = asian_avg;
+      update_histogram_with_datum(hist, datum, seen); 
+      seen.push(datum);
     }
-
-    // for (let bin_id=0; bin_id<hist.length; bin_id++){
-    //   let bin = hist.hist[bin_id];
-    //   for (let i=0; i<bin.length; i++){
-    //     let x1 = hist.xScale(bin_id);
-    //     let x2 = hist.xScale(bin_id+1);
-    //     let y = hist.yScale(i);
-    //     hist.ctx.moveTo(x1, y);
-    //     hist.ctx.lineTo(x2, y);
-    //   }    
-    //   hist.ctx.stroke();
-    // }
 
     const allowed_ms = 15000; // todo: remove
     if (elapsed_ms < allowed_ms) { 
@@ -463,123 +470,27 @@ startAnimation();
 </script>
 
 <script>
-  // const { createApp } = Vue
 
-  // createApp({
-  //   data() {
-  //     return {
-  //       message: 'Hello Vue!'
-  //     }
-  //   }
-  // }).mount('#app')
+new Vue({
+  el: '#app',
+  data: {
+  },
+  computed: {
+    currentChapter: function(){
+    },
+  },
+  created() {
+    console.log('heyyy')
+  },
+  methods: {
+    makeHistogram(){
 
-// Vue.component('distribution', {
-//   props: {
+    },
+    submitRequest(){
 
-//     title: {type: String},
-//     xLabel: {type: String},
-//     yLabel: {type: String},
-
-//     // Pass in outcomes directly.
-//     outcomes: {type: Array, default: function(){
-//       return [
-//         {x: 'tattoos', y: 0.2},
-//         {x: 'no tattoos', y: 0.8},
-//       ];
-//     }},
-//     chartHeight: {type: Number, default: 200},
-//     chartWidth: {type: Number, default: 300},
-//     barColor: {type:String, default:'#2F77A1'},
-//     margin: {
-//       type: Object, 
-//       default: function(){
-//         return {top: 10, right: 10, bottom: 50, left: 50};
-//       }
-//     },
-//   },
-//   computed: {
-//     xScale(){
-//       return d3.scaleBand()
-//           .domain(this.outcomes.map(d => d.x)).paddingInner(0.01).range([0, this.chartWidth]);
-//     },
-//     xScaleContinuous(){
-//       const domain = this.xScale.domain();
-//       const range = this.xScale.range();
-//       const bandwidth = this.xScale.bandwidth();
-//       return d3.scaleLinear().domain([domain[0], domain[domain.length-1]]).range([range[0] + bandwidth/2, range[1] - bandwidth/2]);
-//     },
-//     yScale(){
-//       return d3.scaleLinear()
-//           .domain([0, 1]).range([this.chartHeight, 0]);
-//     },
-//     titleStyle(){
-//       return {'margin-left': this.margin.left + 'px', 'margin-right': this.margin.right + 'px'};
-//     },
-//     mean: function(){
-//       return _.sum(this.outcomes.map(outcome => outcome.x * outcome.y));
-//     },
-//   },
-//   data: function(){
-//     return {
-//       isCreated: false,
-//     }
-//   },
-//   created: function(){
-//     // Add domains
-//     console.log('created');
-//     this.isCreated = true;
-//   },
-//   mounted: function() {
-//     // Add the axis
-//     var xAxis = d3.axisBottom(this.xScale); //.ticks(8);
-//     var yAxis = d3.axisLeft(this.yScale).ticks(4);
-
-//     const chart = d3.select(this.$el).select('.container');
-//     chart.append('g').call(yAxis);
-//     chart.append('g').attr('transform', 'translate(0,' + this.chartHeight + ')').call(xAxis);
-
-
-//     // x axis label
-//     chart.append("text")             
-//       .attr("transform",
-//             "translate(" + (this.chartWidth/2) + " ," + 
-//                            (this.chartHeight + this.margin.top + 30) + ")")
-//       .style("text-anchor", "middle")
-//       .text(this.xLabel);
-
-//     // y axis label
-//     chart.append("text")
-//       .attr("transform", "rotate(-90)")
-//       .attr("y", 0 - this.margin.left)
-//       .attr("x",0 - (this.chartHeight / 2))
-//       .attr("dy", "1em")
-//       .style("text-anchor", "middle")
-//       .text(this.yLabel);    
-
-//   },
-//   template: '#distribution-template'
-// });
-
-// new Vue({
-//   el: '#app',
-//   data: {
-//   },
-//   computed: {
-//     currentChapter: function(){
-//     },
-//   },
-//   created() {
-//     console.log('heyyy')
-//   },
-//   methods: {
-//     makeHistogram(){
-
-//     },
-//     submitRequest(){
-
-//     }
-//   } // end methods
-// });
+    }
+  } // end methods
+});
 </script>
 
 </body>
