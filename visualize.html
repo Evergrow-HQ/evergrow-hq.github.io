@@ -204,11 +204,13 @@ Play with this calculator to see how Asian options are cheaper to underwrite tha
 
     <div style="position:relative;">
       <canvas id="ehistogram" width="450" height="200"></canvas>
+      <canvas id="ehistogram-overlay" width="450" height="200" class="absolute"></canvas>
       <div style="position:absolute; bottom: -24px; text-align: center; width:100%">Average loss for European put: <span id="european_avg" style="color: #003936"></span></div>
     </div>
 
     <div style="position:relative;">
       <canvas id="ahistogram" width="450" height="200"></canvas>
+      <canvas id="ahistogram-overlay" width="450" height="200" class="absolute"></canvas>
       <div style="position:absolute; bottom: -24px; text-align: center; width:100%">Average loss for Asian put: <span id="asian_avg" style="color: #003936"></span> </p> </div>
     </div>
 
@@ -334,7 +336,15 @@ function setupHistogram(data){
   actx.strokeStyle = DARK; //GREEN; //DARK;
   actx.lineWidth = 2;
 
-  return {ectx: ectx, actx: actx, xScale: xScale, yScale: yScale, hist:hist};  
+  const ectxo = document.getElementById('ehistogram-overlay').getContext('2d');   
+  ectxo.strokeStyle = '#fff'
+  ectxo.lineWidth = 2;
+
+  const actxo = document.getElementById('ahistogram-overlay').getContext('2d');   
+  actxo.strokeStyle = '#fff'
+  actxo.lineWidth = 2;
+
+  return {ectx: ectx, actx: actx, ectxo: ectxo, actxo: actxo, xScale: xScale, yScale: yScale, hist:hist};  
 }
 
 
@@ -361,8 +371,8 @@ function find_bin_data(hist, datum, seen){
   const e_current_histogram = current_histogram(hist, seen, 'european');
   const a_current_histogram = current_histogram(hist, seen, 'asian');
 
-  const e_num_in_bin = e_current_histogram[e_bin_id] + 1;
-  const a_num_in_bin = a_current_histogram[a_bin_id] + 1;
+  const e_num_in_bin = e_current_histogram[e_bin_id];// + 1;
+  const a_num_in_bin = a_current_histogram[a_bin_id]; // + 1;
 
   return {e_bin_id: e_bin_id, 
           e_num_in_bin: e_num_in_bin, 
@@ -370,7 +380,7 @@ function find_bin_data(hist, datum, seen){
           a_num_in_bin: a_num_in_bin};
 }
 
-function update_histogram_with_datum(hist, datum, seen){
+function update_histogram_with_datum(hist, seen){
 
   // Update running average.
   const asian_avg = _.mean(seen.map(datum => datum.asian)) || 0;
@@ -378,28 +388,28 @@ function update_histogram_with_datum(hist, datum, seen){
   document.querySelector('#european_avg').textContent = '$'+european_avg.toFixed(2);
   document.querySelector('#asian_avg').textContent = '$'+asian_avg.toFixed(2);
 
-  // Draw the current line in white.
-  const bin_data = find_bin_data(hist, datum, seen); // update this -- stopped here
-  draw_line(hist, hist.ectx, bin_data.e_bin_id, bin_data.e_num_in_bin, '#fff');
-  draw_line(hist, hist.actx, bin_data.a_bin_id, bin_data.a_num_in_bin, '#fff');
+  // Draw the current point in white.
+  let datum = _.last(seen);
+  let bin_data = find_bin_data(hist, datum, seen);
 
-  // At each step - draw the current point in white
-  // draw hte previous point in green
-  
+  clearCanvas(hist.ectxo);
+  clearCanvas(hist.actxo);
+  draw_line(hist, hist.ectxo, bin_data.e_bin_id, bin_data.e_num_in_bin);
+  draw_line(hist, hist.actxo, bin_data.a_bin_id, bin_data.a_num_in_bin);
 
-  // Draw the old line in the original color.
-  // stopped here - trying this.
-  // const last = 
+  // Draw over the previous points in green.
+  // Technically we should only need to draw over the last point.
+  for (var ind=0; ind<seen.length-1; ind++){
+    let datum = seen[ind];
+    let bin_data = find_bin_data(hist, datum, seen.slice(0, ind));
+    draw_line(hist, hist.ectx, bin_data.e_bin_id, bin_data.e_num_in_bin);
+    draw_line(hist, hist.actx, bin_data.a_bin_id, bin_data.a_num_in_bin);
+  }
 }
 
 // https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API/Tutorial/Basic_animations
 // ctx.save() + ctx.restore(); 
-
-
-function draw_line(hist, ctx, bin_id, num_in_bin, color){
-  ctx.save();
-
-  ctx.strokeStyle = color; //GREEN; 
+function draw_line(hist, ctx, bin_id, num_in_bin){
   let x1 = hist.xScale(bin_id);
   let x2 = hist.xScale(bin_id+1);
 
@@ -409,10 +419,12 @@ function draw_line(hist, ctx, bin_id, num_in_bin, color){
   ctx.moveTo(x1+pad, y);
   ctx.lineTo(x2-pad, y);
   ctx.stroke();
-  ctx.restore();
 }
 
-
+function clearCanvas(ctx){
+  const max_size = 1000;
+  ctx.clearRect(0, 0, max_size, max_size);
+}
 
 
 </script>
@@ -471,13 +483,10 @@ new Vue({
       const hist = setupHistogram(data);
 
 
-      // clear canvases
-      const max_size = 1000;
-      line.ctx.clearRect(0, 0, max_size, max_size);
-      line.lctx.clearRect(0, 0, max_size, max_size);
-      hist.ectx.clearRect(0, 0, max_size, max_size);
-      hist.actx.clearRect(0, 0, max_size, max_size);
-
+      clearCanvas(line.ctx);
+      clearCanvas(line.lctx);
+      clearCanvas(hist.ectx);
+      clearCanvas(hist.actx);
 
       let timestamp_start;
       let last = {sim_ind:0, pt_ind:0};
@@ -496,7 +505,7 @@ new Vue({
 
         line.ctx.beginPath();
         line.lctx.beginPath();
-        line.lctx.clearRect(0, 0, 1500,1500);
+        clearCanvas(line.lctx);
         for (let sim_ind=last.sim_ind; sim_ind<= Math.min(position.sim_ind, data.length-1); sim_ind++){
           let pts = data[sim_ind].pts;
           for (let pt_ind=last.pt_ind; pt_ind<=Math.min(position.pt_ind, pts.length-2); pt_ind++){
@@ -518,9 +527,8 @@ new Vue({
         for (let sim_ind=last.sim_ind; sim_ind < Math.min(position.sim_ind, data.length); sim_ind++){
 
           const datum = data[sim_ind];
-
-          update_histogram_with_datum(hist, datum, seen); 
           seen.push(datum);
+          update_histogram_with_datum(hist, seen); 
         }
 
         const allowed_ms = 30000; // max allowed time for animation
