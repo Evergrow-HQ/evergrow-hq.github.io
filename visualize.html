@@ -53,7 +53,7 @@ select{
 @media (min-width: 800px){
 
   /* Only do a 2 column layout if the screen is large */
-  .container{
+  .content-grid{
     display: grid;
     grid-template-columns: 1fr 1fr;
     grid-column-gap:  5%;
@@ -71,9 +71,9 @@ select{
 }
 
 @media (max-width: 600px){
-.top-margin-mobile{
-  margin-top: 16px;
-}
+  .top-margin-mobile{
+    margin-top: 16px;
+  }
 
 }
 
@@ -112,7 +112,7 @@ select{
   <div class="hero wf-section" style="padding-top:120px"><img src="images/hero-bg-min.png" srcset="images/hero-bg-min-p-500.png 500w, images/hero-bg-min-p-800.png 800w, images/hero-bg-min-p-1080.png 1080w, images/hero-bg-min-p-1600.png 1600w, images/hero-bfg-min-p-2000.png 2000w, images/hero-bg-min-p-2600.png 2600w, images/hero-bg-min.png 2880w" style="-webkit-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-moz-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-ms-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);opacity:1; background-color: black" sizes="100vw" alt="" class="hero__bg-img" >
     <div class="hero__helper">
 
-<div class="container" style="color:white; background-color: #257D78; padding: 5% 48px; font-size: 16px" >
+<div class="container content-grid" style="color:white; background-color: #257D78; padding: 5% 48px; font-size: 16px" >
 
 
 <div>
@@ -328,9 +328,6 @@ function setupLineChart(data){
 }
 
 function setupHistogram(data){
-  // debugger;
-  // const european_payouts = data.map(datum => datum.european);
-
   const padding = {top: 0, left: 0, right: 0, bottom: 0};
   const width = 450 - padding.left - padding.right;
   const height = 200 - padding.top - padding.bottom;
@@ -620,6 +617,10 @@ new Vue({
         if (this_.creditType == startingCreditType && last.sim_ind < data.length && elapsed_ms < allowed_ms) { 
           last = position; 
           window.requestAnimationFrame(animationFn);
+        } else{
+          // Animation is ending
+          clearCanvas(hist.ectxo);
+          clearCanvas(hist.actxo);
         }
       }
       window.requestAnimationFrame(animationFn);
