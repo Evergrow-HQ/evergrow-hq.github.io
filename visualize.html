@@ -112,15 +112,13 @@ Traditional option structures can provide similar types of downside protection -
 We at Evergrow provide a variant of a put option that guarantees average revenue e.g. on an annual or quarterly basis, the frequency at which they pay out to their lenders. Through this averagining methodology, it is possible to have a much cheaper option. This is called an Asian option. 
 </p>
 <p>
-Play with this calculator to see how Asian options are cheaper to underwrite than traditional European options. </p>
+Change the credit type to see how Asian options are cheaper to underwrite than traditional European options. </p>
 
 
 <div id="app" >
-<div v-show="showGenerateForm" class="mini-form" style="display: grid; grid-template-columns: minmax(180px,1fr) 1fr 1fr; grid-row-gap: 4px;">
+<div class="mini-form" style="display: grid; grid-template-columns: minmax(180px,1fr) 1fr 1fr; grid-row-gap: 4px;">
 
 
-<!--   {{JSON.stringify(activeData).length}}
- -->
 <div>Credit type</div>
 <select v-model="creditType" @change="startAnimation">
   <option v-for="(strike, scenario_name) in config.strikes" :value="scenario_name">{{scenario_name.toUpperCase()}}</option>
@@ -140,32 +138,16 @@ Play with this calculator to see how Asian options are cheaper to underwrite tha
 <input v-model="endYear" />
 
 <div></div>
-<button style="background-color: #1F6A66; grid-column: span 2;"  @click="generateClick">Generate custom simulation</button>
+<button v-show="showGenerateButton" style="background-color: #1F6A66; grid-column: span 2;"  @click="generateClick">Run custom simulation</button>
 
 </div> <!-- end mini form -->
 
 
 <div v-show="showEmailForm" class="popup-form">
 
-<p>We will run and send the results of our Monte Carlo simulation to your info below.</p>
+<p>We will share the results of our Monte Carlo simulation to your info below.</p>
 
 <div style="display: grid; grid-template-columns: minmax(180px,1fr) 1fr 1fr; grid-row-gap: 4px;">
-
-  <div>Credit type</div>
-  <div>{{creditType.toUpperCase()}}</div>
-  <br>
-
-  <div>Strike</div>
-  <div>{{strike}}</div>
-  <br>
-
-  <div>Credit volume per year</div>
-  <div>{{volume}}</div>
-  <br>
-
-  <div>Years hedged</div>
-  <div>{{startYear}} - {{endYear}}</div>
-  <br>
 
   <div>Name</div>
   <input v-model="name">
@@ -457,8 +439,8 @@ new Vue({
     title: '',
     email: '',
 
-    showGenerateForm: true,
-    showEmailForm: true,
+    showGenerateButton: true,
+    showEmailForm: false,
 
     feedbackMessage: '',
 
@@ -482,11 +464,37 @@ new Vue({
   methods: {
 
     generateClick(){
-      this.showGenerateForm = false;
+      this.showGenerateButton = false;
       this.showEmailForm = true;
     },
     submitEmail(){
       console.log(this.name + this.title + this.email);
+
+      // Check that the fields are filled in
+      // produce an error message if not
+      const required_fields = {'Name': this.name, 'Title': this.title, 'Business email': this.email};
+
+      function is_valid(field){
+        return field.length > 1;
+      }
+
+      const invalid_fields = [];
+      if (!is_valid(this.name)){
+        invalid_fields.push('Name');
+      }
+      if (!is_valid(this.title)){
+        invalid_fields.push('Title');
+      }
+      if (!is_valid(this.email) || this.email.indexOf('@') == -1){
+        invalid_fields.push('Business email');
+      }
+      if (invalid_fields.length > 0){
+        this.feedbackMessage = invalid_fields.join(', ') + 'must be valid to receive results.'
+
+        // Early return
+        return;
+      }
+
 
       // Add to our mailchimp mailing list.
       const data = {
@@ -501,6 +509,7 @@ new Vue({
 
       const data_string = Object.keys(data).map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`).join('&') +'&b_0e6bd4de06f70287710cc3ec0_2b66b20e2f=';
 
+      console.log('posting ' + data_string);
       $.ajax({
         type: 'POST',
         url: 'https://evergrow.us8.list-manage.com/subscribe/post-json?u=0e6bd4de06f70287710cc3ec0&id=2b66b20e2f&c=?',
