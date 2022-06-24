@@ -489,12 +489,22 @@ new Vue({
       console.log(this.name + this.title + this.email);
 
       // Add to our mailchimp mailing list.
-      const data_string = 'EMAIL=' + encodeURIComponent(this.email)+'&FNAME='+encodeURIComponent(this.name)+'&TITLE='+encodeURIComponent(this.title)+'&b_0e6bd4de06f70287710cc3ec0_2b66b20e2f=';
+      const data = {
+        EMAIL: this.email,
+        FNAME: this.name,
+        TITLE: this.title,
+        STRIKE: this.strike,
+        YEARS: this.startYear+'-'+this.endYear,
+        VOLUME: this.volume,
+        CREDITTYPE: this.creditType
+      }
+
+      const data_string = Object.keys(data).map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(data[key])}`).join('&') +'&b_0e6bd4de06f70287710cc3ec0_2b66b20e2f=';
 
       $.ajax({
         type: 'POST',
         url: 'https://evergrow.us8.list-manage.com/subscribe/post-json?u=0e6bd4de06f70287710cc3ec0&id=2b66b20e2f&c=?',
-        data: data_string, //$('#mc-embedded-subscribe-form').serialize(),
+        data: data_string, 
         cache: false,
         dataType: 'json',
         contentType: "application/json; charset=utf-8",
@@ -504,7 +514,7 @@ new Vue({
         },
         success: (res) => {
           console.log('Success');
-          this.feedbackMessage = 'Expect an email from us!';
+          this.feedbackMessage = 'Expect an email from us with your results.';
         }
       });
 
