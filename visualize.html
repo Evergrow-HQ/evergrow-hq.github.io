@@ -46,6 +46,37 @@ select{
   top:  0;
 }
 
+.top-margin{
+  margin-top: 16px;
+}
+
+@media (min-width: 800px){
+
+  /* Only do a 2 column layout if the screen is large */
+  .container{
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-column-gap:  5%;
+  }
+
+  .mini-form{
+    display: grid; 
+    grid-template-columns: minmax(180px,1fr) 1fr 1fr; 
+    grid-row-gap: 4px;
+  }
+
+  .email-grid{
+    display: grid; grid-template-columns: minmax(180px,1fr) 1fr 1fr; grid-row-gap: 4px;    
+  }
+}
+
+@media (max-width: 600px){
+.top-margin-mobile{
+  margin-top: 16px;
+}
+
+}
+
 </style>
 
 <script src="website.js"></script>
@@ -81,7 +112,7 @@ select{
   <div class="hero wf-section" style="padding-top:120px"><img src="images/hero-bg-min.png" srcset="images/hero-bg-min-p-500.png 500w, images/hero-bg-min-p-800.png 800w, images/hero-bg-min-p-1080.png 1080w, images/hero-bg-min-p-1600.png 1600w, images/hero-bfg-min-p-2000.png 2000w, images/hero-bg-min-p-2600.png 2600w, images/hero-bg-min.png 2880w" style="-webkit-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-moz-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);-ms-transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);transform:translate3d(0, 0, 0) scale3d(1, 1, 1) rotateX(0) rotateY(0) rotateZ(0) skew(0, 0);opacity:1; background-color: black" sizes="100vw" alt="" class="hero__bg-img" >
     <div class="hero__helper">
 
-<div class="container" style="display: grid; grid-template-columns: 1fr 1fr; grid-column-gap: 5%; color:white; background-color: #257D78; padding: 5% 48px; font-size: 16px" >
+<div class="container" style="color:white; background-color: #257D78; padding: 5% 48px; font-size: 16px" >
 
 
 <div>
@@ -116,7 +147,7 @@ Change the credit type to see how Asian options are cheaper to underwrite than t
 
 
 <div id="app" >
-<div class="mini-form" style="display: grid; grid-template-columns: minmax(180px,1fr) 1fr 1fr; grid-row-gap: 4px;">
+<div class="mini-form">
 
 
 <div>Credit type</div>
@@ -145,9 +176,9 @@ Change the credit type to see how Asian options are cheaper to underwrite than t
 
 <div v-show="showEmailForm" class="popup-form">
 
-<p>We will share the results of our Monte Carlo simulation to your info below.</p>
+<p class="top-margin">We will share the results of our Monte Carlo simulation to your info below.</p>
 
-<div style="display: grid; grid-template-columns: minmax(180px,1fr) 1fr 1fr; grid-row-gap: 4px;">
+<div class="email-grid">
 
   <div>Name</div>
   <input v-model="name">
@@ -184,8 +215,7 @@ Change the credit type to see how Asian options are cheaper to underwrite than t
   
 
 
-  <div>
-    <!-- border-bottom: 1px solid #1f6a66; border-left: 1px solid #1f6a66 -->
+   <div class="top-margin-mobile">
     <p>Using Monte Carlo to simulate future price paths...</p>
     <div style="position:relative; height: 250px">
     <canvas id="chart" width="450" height="250" class="absolute"></canvas>
@@ -193,7 +223,7 @@ Change the credit type to see how Asian options are cheaper to underwrite than t
     </div>
   </div>
 
-  <div>
+  <div class="top-margin">
     <p>We can see in the loss histograms, that it is significantly cheaper to write an Asian put than a European put.</p>
 
     <div style="position:relative;">
@@ -209,6 +239,7 @@ Change the credit type to see how Asian options are cheaper to underwrite than t
     </div>
 
   </div>
+
 
 </div> 
 </div> <!-- end big grid -->
