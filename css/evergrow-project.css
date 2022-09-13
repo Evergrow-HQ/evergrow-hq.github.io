@@ -1835,6 +1835,9 @@ li {
   max-width: 256px;
   object-fit: contain;
 }
+.explain-item b {
+  color: #185e67;
+}
 @media(max-width: 575px ) {
   .explain-item {
     flex-wrap: wrap;
